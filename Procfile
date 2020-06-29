@@ -1,1 +1,1 @@
-web: gunicorn <el nombre de tu proyecto>.wsgi --log-file -
+web: gunicorn t5.wsgi --log-file -
