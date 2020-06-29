@@ -1,1 +1,1 @@
-web: gunicorn t5.wsgi --log-file -
+web: gunicorn t5taller.wsgi --log-file -
