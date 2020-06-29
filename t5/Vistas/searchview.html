@@ -1,0 +1,70 @@
+<html>
+
+<head>
+    <title>Tarea 1</title>
+</head>
+
+
+<body>
+    {% include 'navbar.html' %}
+
+    <h1>
+        Rick and Morty
+    </h1>
+    <h2>Búsqueda: {{busqueda}}</h2>
+    <h3>
+        Episodios:
+    </h3>
+    <ul>
+
+
+        {% for e in lista_episodios %}
+
+        <li>
+            <a href={{e.url}}>{{e.name}}</a>
+
+        </li>
+
+        {% endfor %}
+
+    </ul>
+    <h3>
+        Personajes:
+    </h3>
+    <ul>
+
+
+        {% for e in lista_personajes %}
+
+        <li>
+            <a href={{e.url}}>{{e.name}}</a>
+            <img src="{{e.image}}" alt="">
+
+        </li>
+
+        {% endfor %}
+
+    </ul>
+
+    <h3>
+        Lugares:
+    </h3>
+    <ul>
+
+
+        {% for e in lista_lugares %}
+
+        <li>
+            <a href={{e.url}}>{{e.name}}</a>
+        </li>
+
+        {% endfor %}
+
+    </ul>
+
+
+
+
+</body>
+
+</html>

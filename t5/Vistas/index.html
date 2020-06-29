@@ -1,0 +1,43 @@
+<html>
+
+<head>
+    <title>Tarea 1</title>
+</head>
+
+<body>
+    {% include 'navbar.html' %}
+    <h1>
+        Rick and Morty
+    </h1>
+
+    <h3>
+        Capitulos
+    </h3>
+    <ul>
+
+        {% for e in episodios %}
+
+        <li>
+            <a href={{e.local_url}}>{{e.name}} - {{e.episode}}</a>
+            <p> Fecha de emisión: {{e.air_date}}</p>
+
+        </li>
+
+        {% endfor %}
+    </ul>
+
+    <h3>
+
+        Paginas
+
+    </h3>
+
+    {% for p in paginas %}
+
+    <a href={{p.url}}>{{p.numero}}</a>
+
+    {% endfor %}
+
+</body>
+
+</html>

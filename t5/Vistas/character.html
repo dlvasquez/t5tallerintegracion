@@ -1,0 +1,81 @@
+<html>
+
+<head>
+    <title>Tarea 1</title>
+</head>
+
+<body>
+    {% include 'navbar.html' %}
+    <h1>
+        Rick and Morty
+    </h1>
+    <div>
+        <h3>
+            Personaje: {{personaje.name}}
+        </h3>
+
+
+
+        <img src="{{personaje.image}}" alt="">
+
+    </div>
+    <h3>
+        Status: {{personaje.status}}
+    </h3>
+    <h3>
+        Species: {{personaje.species}}
+    </h3>
+    <h3>
+        Type: {% if personaje.type == "" %}
+
+        Unknown
+
+        {% else %}
+
+        {{personaje.type}}
+
+        {% endif %}
+
+    </h3>
+    <h3>
+        Gender: {{personaje.gender}}
+    </h3>
+    <h3>
+        Capitulos
+    </h3>
+    <ul>
+
+
+        {% for e in lista_episodios %}
+
+        <li>
+            <a href={{e.url}}>{{e.episode}} - {{e.name}}</a>
+
+        </li>
+
+        {% endfor %}
+
+    </ul>
+    <h3>
+        Origin
+    </h3>
+
+    <li>
+        <a href={{origin.url}}>{{origin.name}}</a>
+
+    </li>
+    <h3>
+        Location
+    </h3>
+
+
+    <li>
+        <a href={{location.url}}>{{location.name}}</a>
+
+    </li>
+
+
+
+</body>
+
+</html>

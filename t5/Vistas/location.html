@@ -1,0 +1,40 @@
+<html>
+
+<head>
+    <title>Tarea 1</title>
+</head>
+
+<body>
+    {% include 'navbar.html' %}
+    <h1>
+        Rick and Morty
+    </h1>
+
+    <h3>
+        Lugar: {{lugar.name}}
+    </h3>
+    <h3>
+        Type: {{lugar.type}}
+    </h3>
+    <h3>
+        Dimension: {{lugar.dimension}}
+    </h3>
+    <h3>
+        Residentes:
+    </h3>
+    <ul>
+
+        {% for e in lista_residentes %}
+
+        <li>
+            <a href={{e.url}}>{{e.name}}</a>
+            <img src="{{e.image}}" alt="">
+
+        </li>
+
+        {% endfor %}
+
+    </ul>
+</body>
+
+</html>
