@@ -246,86 +246,179 @@ def characterView(request, id):
     return HttpResponse(documento)
 
 
-# def locationsView(request, id):
-#     doc_externo = get_template('locations.html')
-#     if (id):
-#         respuesta = requests.get(
-#             'https://integracion-rick-morty-api.herokuapp.com/api/location/?page='+str(id))
-#     else:
-#         respuesta = requests.get(
-#             'https: // integracion-rick-morty-api.herokuapp.com/api/location')
+def locationsView(request, id):
+    doc_externo = get_template('locations.html')
+    if (id):
+        query = gql('''
+            query {
+                locations(page: %d) {
+                    info {
+                    count
+                    pages
+                    }
+                    results {
+                    id
+                    name
+                    }
+                }
+                }
+            ''' % (id))
+    else:
+        query = gql('''
+            query {
+                locations(page: %d) {
+                    info {
+                    count
+                    pages
+                    }
+                    results {
+                    id
+                    name
+                    }
+                }
+                }
+            ''' % (1))
 
-#     r_lugares = respuesta.json()
-#     lista_lugares = r_lugares["results"]
-#     paginas = []
-#     info = r_lugares["info"]
-#     n_pages = info["pages"]
-#     for i in range(n_pages):
-#         url_p = "../../lugares/"+str(i+1)
-#         dic = {"numero": i+1, "url": url_p}
-#         paginas.append(dic)
+    respuesta = client.execute(query)
+    r_lugares = respuesta["locations"]
+    lista_lugares = r_lugares["results"]
+    paginas = []
+    info = r_lugares["info"]
+    n_pages = info["pages"]
+    for i in range(n_pages):
+        url_p = "../../lugares/"+str(i+1)
+        dic = {"numero": i+1, "url": url_p}
+        paginas.append(dic)
 
-#     new_list = []
-#     for p in lista_lugares:
-#         new_list.append(
-#             {"url": "../../lugar/"+str(p["id"])+"/", "name": p["name"]})
+    new_list = []
+    for p in lista_lugares:
+        new_list.append(
+            {"url": "../../lugar/"+str(p["id"])+"/", "name": p["name"]})
 
-#     documento = doc_externo.render(
-#         {"lista_lugares": new_list, "paginas": paginas})
-#     return HttpResponse(documento)
-
-
-# def placeView(request, id):
-#     doc_externo = get_template('location.html')
-#     respuesta = requests.get(
-#         'https://integracion-rick-morty-api.herokuapp.com/api/location/'+str(id))
-#     r_lugar = respuesta.json()
-#     lista_personajes = []
-#     for p in r_lugar["residents"]:
-#         answer = requests.get(p).json()
-#         lista_personajes.append(
-#             {"url": "../../personaje/"+str(answer["id"])+"/", "name": answer["name"], "image": answer["image"]})
-
-#     documento = doc_externo.render(
-#         {"lugar": r_lugar, "lista_residentes": lista_personajes})
-#     return HttpResponse(documento)
+    documento = doc_externo.render(
+        {"lista_lugares": new_list, "paginas": paginas})
+    return HttpResponse(documento)
 
 
-# def searchView(request):
-#     doc_externo = get_template('searchview.html')
-#     query = ""
-#     if request.GET:
-#         query = request.GET["search"]
+def placeView(request, id):
+    doc_externo = get_template('location.html')
 
-#     r_episodios = requests.get(
-#         'https://integracion-rick-morty-api.herokuapp.com/api/episode/?name='+str(query)).json()
-#     r_personajes = requests.get(
-#         'https://integracion-rick-morty-api.herokuapp.com/api/character/?name='+str(query)).json()
-#     r_lugares = requests.get(
-#         'https://integracion-rick-morty-api.herokuapp.com/api/location/?name='+str(query)).json()
+    query = gql('''
+    query {
+        location(id: %d) {
+            id
+            name
+                type
+                dimension
+                residents {
+                id
+                name
+                image
+            }
+            }
+        }
+        ''' % (id))
+    respuesta = client.execute(query)
 
-#     nueva_personajes = []
-#     nueva_episodios = []
-#     nueva_lugares = []
+    r_lugar = respuesta["location"]
+    lista_personajes = []
+    for p in r_lugar["residents"]:
+        answer = p
+        lista_personajes.append(
+            {"url": "../../personaje/"+str(answer["id"])+"/", "name": answer["name"], "image": answer["image"]})
 
-#     if len(r_episodios) > 1:
-#         lista_episodios = r_episodios["results"]
-#         for p in lista_episodios:
-#             nueva_episodios.append(
-#                 {"url": "../../personaje/"+str(p["id"])+"/", "name": p["name"]})
+    documento = doc_externo.render(
+        {"lugar": r_lugar, "lista_residentes": lista_personajes})
+    return HttpResponse(documento)
 
-#     if len(r_personajes) > 1:
-#         lista_personajes = r_personajes["results"]
-#         for p in lista_personajes:
-#             nueva_personajes.append(
-#                 {"url": "../../personaje/"+str(p["id"])+"/", "name": p["name"]})
 
-#     if len(r_lugares) > 1:
-#         lista_lugares = r_lugares["results"]
-#         for p in lista_lugares:
-#             nueva_lugares.append(
-#                 {"url": "../../lugar/"+str(p["id"])+"/", "name": p["name"]})
+def searchView(request):
+    doc_externo = get_template('searchview.html')
+    query = ""
+    if request.GET:
+        query = request.GET["search"]
 
-#     documento = doc_externo.render({"busqueda": query, "lista_personajes": nueva_personajes,
-#                                     "lista_episodios": nueva_episodios, "lista_lugares": nueva_lugares})
-#     return HttpResponse(documento)
+    query_episodios = gql('''
+    query {
+        episodes(filter: { name: "%s" }) {
+            info {
+            count
+            pages
+            }
+            results {
+            id
+            name
+            }
+        }
+        }
+        ''' % (query))
+    try:
+        r_episodios = client.execute(query_episodios)["episodes"]
+    except:
+        r_episodios = {}
+    query_lugares = gql('''
+    query {
+        locations(filter: { name: "%s" }) {
+            info {
+            count
+            pages
+            }
+            results {
+            id
+            name
+            }
+        }
+        }
+        ''' % (query))
+    try:
+        r_lugares = client.execute(query_lugares)["locations"]
+    except:
+        r_lugares = {}
+    query_personajes = gql('''
+    query {
+        characters(filter: { name: "%s" }) {
+            info {
+            count
+            pages
+            }
+            results {
+            id
+            name
+            image
+            }
+        }
+        }
+        ''' % (query))
+    try:
+        r_personajes = client.execute(query_personajes)["characters"]
+    except:
+        r_personajes = {}
+
+    nueva_personajes = []
+    nueva_episodios = []
+    nueva_lugares = []
+
+    print(r_personajes)
+    print(r_episodios)
+    print(r_lugares)
+    if len(r_episodios) > 1:
+        lista_episodios = r_episodios["results"]
+        for p in lista_episodios:
+            nueva_episodios.append(
+                {"url": "../../personaje/"+str(p["id"])+"/", "name": p["name"]})
+
+    if len(r_personajes) > 1:
+        lista_personajes = r_personajes["results"]
+        for p in lista_personajes:
+            nueva_personajes.append(
+                {"url": "../../personaje/"+str(p["id"])+"/", "name": p["name"]})
+
+    if len(r_lugares) > 1:
+        lista_lugares = r_lugares["results"]
+        for p in lista_lugares:
+            nueva_lugares.append(
+                {"url": "../../lugar/"+str(p["id"])+"/", "name": p["name"]})
+
+    documento = doc_externo.render({"busqueda": query, "lista_personajes": nueva_personajes,
+                                    "lista_episodios": nueva_episodios, "lista_lugares": nueva_lugares})
+    return HttpResponse(documento)

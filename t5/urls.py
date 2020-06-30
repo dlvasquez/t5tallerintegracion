@@ -17,8 +17,8 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-# from graphene_django.views import GraphQLView
-from t5.views import homeView, episodesView, episodeView, charactersView, characterView
+from t5.views import homeView, episodesView, episodeView, charactersView, characterView, locationsView, placeView, searchView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', homeView),
@@ -26,6 +26,9 @@ urlpatterns = [
     path('episodio/<int:id>/', episodeView),
     path('personajes/<int:id>/', charactersView),
     path('personaje/<int:id>/', characterView),
+    path('lugares/<int:id>/', locationsView),
+    path('lugar/<int:id>/', placeView),
+    path('busqueda/', searchView),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
@@ -36,11 +39,4 @@ urlpatterns = [
 # from django.conf.urls.static import static
 
 # urlpatterns = [
-#     path('', homeView),
-#     path('personaje/<int:id>/', characterView),
-#     path('lugar/<int:id>/', placeView),
-#     path('busqueda/', searchView),
-#     path('episodios/<int:id>/', episodesView),
-# path('personajes/<int:id>/', charactersView),
-#     path('lugares/<int:id>/', locationsView),
 # ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
