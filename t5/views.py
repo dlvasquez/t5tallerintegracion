@@ -102,52 +102,148 @@ def episodesView(request, id):
 
     return HttpResponse(documento)
 
-# def episodeView(request, id):
-#     doc_externo = get_template('episode.html')
 
-#     respuesta = requests.get(
-#         'https://integracion-rick-morty-api.herokuapp.com/api/episode/'+str(id))
-#     r_episodio = respuesta.json()
-#     lista_personajes = []
-#     for p in r_episodio["characters"]:
-#         answer = requests.get(p).json()
-#         lista_personajes.append(
-#             {"url": "../../personaje/"+str(answer["id"])+"/", "name": answer["name"], "image": answer["image"]})
+def episodeView(request, id):
+    doc_externo = get_template('episode.html')
+
+    query = gql('''
+    query {
+    episode(id: %d) {
+        id
+        name
+        episode
+        air_date
+        characters {
+        id
+        name
+        image
+        }
+    }
+    }
+        ''' % (id))
+    respuesta = client.execute(query)
+
+    print(respuesta)
+    episodio = respuesta["episode"]
+
+    for p in episodio["characters"]:
+        p["url"] = "../../personaje/"+str(p["id"])+"/"
+
+    documento = doc_externo.render(
+        {"episodio": episodio, "lista_personajes": episodio["characters"]})
+
+    return HttpResponse(documento)
 
 
-#     documento = doc_externo.render(
-#         {"episodio": r_episodio, "lista_personajes": lista_personajes})
-#     return HttpResponse(documento)
+def charactersView(request, id):
+    doc_externo = get_template('characters.html')
+    if (id):
+        query = gql('''
+            query {
+            characters(page: %d) {
+                info {
+                count
+                pages
+                }
+                results {
+                id
+                name
+                image
+            }
+            }
+            }
+            ''' % (id))
+    else:
+        query = gql('''
+            query {
+            characters(page: %d) {
+                info {
+                count
+                pages
+                }
+                results {
+                id
+                name
+                image
+            }
+            }
+            }
+            ''' % 1)
 
-# def charactersView(request, id):
-#     doc_externo = get_template('characters.html')
-#     if (id):
-#         respuesta = requests.get(
-#             'https://integracion-rick-morty-api.herokuapp.com/api/character/?page='+str(id))
-#     else:
-#         respuesta = requests.get(
-#             'https: // integracion-rick-morty-api.herokuapp.com/api/character')
+    respuesta = client.execute(query)
+    lista_personajes = respuesta["characters"]["results"]
+    paginas = []
+    info = respuesta["characters"]["info"]
+    n_pages = info["pages"]
+    for i in range(n_pages):
+        url_p = "../../personajes/"+str(i+1)
+        dic = {"numero": i+1, "url": url_p}
+        paginas.append(dic)
 
-#     # respuesta = requests.get(
-#     #     'https://integracion-rick-morty-api.herokuapp.com/api/character/?page='+str(id))
-#     r_personajes = respuesta.json()
-#     lista_personajes = r_personajes["results"]
-#     paginas = []
-#     info = r_personajes["info"]
-#     n_pages = info["pages"]
-#     for i in range(n_pages):
-#         url_p = "../../personajes/"+str(i+1)
-#         dic = {"numero": i+1, "url": url_p}
-#         paginas.append(dic)
+    new_list = []
+    for p in lista_personajes:
+        new_list.append(
+            {"url": "../../personaje/"+str(p["id"])+"/", "name": p["name"], "image": p["image"]})
 
-#     new_list = []
-#     for p in lista_personajes:
-#         new_list.append(
-#             {"url": "../../personaje/"+str(p["id"])+"/", "name": p["name"], "image": p["image"]})
+    documento = doc_externo.render(
+        {"lista_personajes": new_list, "paginas": paginas})
+    return HttpResponse(documento)
 
-#     documento = doc_externo.render(
-#         {"lista_personajes": new_list, "paginas": paginas})
-#     return HttpResponse(documento)
+
+def characterView(request, id):
+    doc_externo = get_template('character.html')
+    query = gql('''
+    query {
+    character(id: %d) {
+        id
+        name
+        image
+        status
+        species
+        type
+        gender
+        episode {
+        id
+        name
+        episode
+        }
+        origin {
+        id
+        name
+        }
+        location {
+        id
+        name
+                }
+            }
+        }
+        ''' % (id))
+    respuesta = client.execute(query)
+    personaje = respuesta["character"]
+    lista_episodios = []
+
+    # buscar episodios
+    for e in personaje["episode"]:
+        lista_episodios.append(
+            {"url": "../../episodio/"+str(e["id"])+"/", "name": e["name"], "episode": e["episode"]})
+    origin = {}
+    # buscar origin
+    origin_name = personaje["origin"]["name"]
+    if origin_name != "unknown":
+        answer_or = personaje["origin"]
+        origin = {"url": "../../lugar/" +
+                  str(answer_or["id"])+"/", "name": answer_or["name"]}
+    else:
+        origin = {"url": "", "name": personaje["origin"]["name"]}
+
+    # buscar location
+    answer_loc = personaje["location"]
+    location = {"url": "../../lugar/" +
+                str(answer_loc["id"])+"/", "name": answer_loc["name"]}
+
+    documento = doc_externo.render(
+        {"personaje": personaje, "lista_episodios": lista_episodios, "location": location, "origin": origin})
+    return HttpResponse(documento)
 
 
 # def locationsView(request, id):
@@ -176,39 +272,6 @@ def episodesView(request, id):
 
 #     documento = doc_externo.render(
 #         {"lista_lugares": new_list, "paginas": paginas})
-#     return HttpResponse(documento)
-
-
-# def characterView(request, id):
-#     doc_externo = get_template('character.html')
-#     respuesta = requests.get(
-#         'https://integracion-rick-morty-api.herokuapp.com/api/character/'+str(id)).json()
-#     lista_episodios = []
-#     lista_lugares = []
-
-#     # buscar episodios
-#     for e in respuesta["episode"]:
-#         answer = requests.get(e).json()
-#         lista_episodios.append(
-#             {"url": "../../episodio/"+str(answer["id"])+"/", "name": answer["name"], "episode": answer["episode"]})
-#     origin = {}
-#     # buscar origin
-#     origin_url = respuesta["origin"]["url"]
-#     if origin_url:
-#         answer_or = requests.get(origin_url).json()
-#         origin = {"url": "../../lugar/" +
-#                   str(answer_or["id"])+"/", "name": answer_or["name"]}
-#     else:
-#         origin = {"url": "", "name": respuesta["origin"]["name"]}
-
-#     # buscar location
-#     location_url = respuesta["location"]["url"]
-#     answer_loc = requests.get(location_url).json()
-#     location = {"url": "../../lugar/" +
-#                 str(answer_loc["id"])+"/", "name": answer_loc["name"]}
-
-#     documento = doc_externo.render(
-#         {"personaje": respuesta, "lista_episodios": lista_episodios, "location": location, "origin": origin})
 #     return HttpResponse(documento)
 
 
